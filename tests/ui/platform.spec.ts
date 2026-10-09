@@ -108,14 +108,8 @@ test("paid CTA opens InstaPay dialog and submits a pending request after confirm
   expect(requests).toBe(0);
   await page.getByRole("button", { name: "Buy", exact: true }).click();
   await expect(dialog.getByRole("button", { name: "Confirm transfer" })).toBeDisabled();
-  await page.route("https://vercel.com/api/blob**", async route => {
-    const request = route.request();
-    const pathname = new URL(request.url()).searchParams.get("pathname");
-    const response = await page.request.post(`http://127.0.0.1:4001/__test/blob?pathname=${encodeURIComponent(pathname || "")}`, {
-      data: request.postDataBuffer()!, headers: { "content-type": request.headers()["x-content-type"] || request.headers()["content-type"] || "image/png" },
-    });
-    await route.fulfill({ status: 200, contentType: "application/json", body: await response.text() });
-  });
+  let uploads = 0;
+  page.on("request", request => { if (request.url().includes("/files/prepare")) uploads++; });
   await dialog.locator('input[type="file"]').setInputFiles({
     name: "receipt.png", mimeType: "image/png",
     buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII=", "base64"),
@@ -133,7 +127,10 @@ test("paid CTA opens InstaPay dialog and submits a pending request after confirm
   const image = page.locator(".order-receipt-thumbnail").first();
   await expect(image).toBeVisible();
   const url = await image.getAttribute("src");
-  expect((await page.request.get(url!)).ok()).toBeTruthy();
+  expect(url).toMatch(/^data:image\/png;base64,/);
+  expect(uploads).toBe(0);
+  await image.click();
+  await expect(page.getByRole("dialog").getByRole("img")).toHaveAttribute("src", url!);
 });
 test("free packages can be claimed directly from Explore", async ({ page }) => {
   await student(page);

@@ -11,12 +11,19 @@ import {
 import { useI18n } from "../../i18n/context";
 import type { Order } from "../../types/domain";
 import { fileUrl } from "../../services/storage";
+import { Dialog } from "../../components/dialog";
 export function Orders() {
   const [status, setStatus] = useState("pending"),
+    [receipt, setReceipt] = useState<string | null>(null),
     { t } = useI18n(),
     resource = useResource<Order[]>(`/admin/orders?status=${status}`);
   return (
     <Page title="orders">
+      {receipt && (
+        <Dialog title={t("receiptImage")} onClose={() => setReceipt(null)}>
+          <img src={fileUrl(receipt)} alt={t("receiptImage")} style={{ display: "block", maxWidth: "100%", maxHeight: "70vh", margin: "auto", objectFit: "contain" }} />
+        </Dialog>
+      )}
       <div className="tabs">
         {["pending", "completed", "cancelled"].map((s) => (
           <button
@@ -63,10 +70,10 @@ export function Orders() {
                   </td>
                   <td data-label={t("receiptImage")}>
                     {order.receiptImage ? (
-                      <a href={fileUrl(order.receiptImage)} target="_blank" rel="noopener noreferrer">
+                      <button type="button" className="quiet" onClick={() => setReceipt(order.receiptImage!)}>
                         <img className="order-receipt-thumbnail" src={fileUrl(order.receiptImage)} alt={t("receiptImage")} />
                         {t("viewReceipt")}
-                      </a>
+                      </button>
                     ) : "—"}
                   </td>
                   <td data-label={t("contact")}>

@@ -7,11 +7,13 @@ export function ImageUpload({
   onChange,
   onBusyChange,
   context,
+  inline = false,
 }: {
   value: string;
   onChange: (value: string) => void;
   onBusyChange: (busy: boolean) => void;
   context: UploadContext;
+  inline?: boolean;
 }) {
   const { t } = useI18n();
   const [error, setError] = useState("");
@@ -37,7 +39,15 @@ export function ImageUpload({
           onBusyChange(true);
           setUploading(true);
           try {
-            onChange((await uploadFile(file, context)).url);
+            if (inline) {
+              const value = await new Promise<string>((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result));
+                reader.onerror = () => reject(new Error("imageReadError"));
+                reader.readAsDataURL(file);
+              });
+              onChange(value);
+            } else onChange((await uploadFile(file, context)).url);
           } catch (error) {
             setError(error instanceof Error ? error.message : "imageReadError");
           } finally {

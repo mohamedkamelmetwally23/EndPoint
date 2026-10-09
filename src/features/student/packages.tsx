@@ -218,7 +218,7 @@ export function StudentPackage() {
           <p><strong dir="ltr">01200929641</strong></p>
           <label>
             <span>{t("receiptImage")}</span>
-            <ImageUpload value={receiptImage} onChange={setReceiptImage} onBusyChange={setUploading} context={{ purpose: "receipt" }} />
+            <ImageUpload inline value={receiptImage} onChange={setReceiptImage} onBusyChange={setUploading} context={{ purpose: "receipt" }} />
           </label>
           {error && <p role="alert" className="error">{t(error)}</p>}
           <div className="actions">
