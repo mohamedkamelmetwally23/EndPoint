@@ -98,7 +98,7 @@ export function AcademicStructure() {
         ...Object.fromEntries(
           Object.entries(editing).filter(
             ([key, v]) =>
-              key !== "code" &&
+              fields.some((field) => field.key === key) &&
               (typeof v === "string" || typeof v === "number"),
           ),
         ),
