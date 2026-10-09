@@ -177,8 +177,8 @@ export function AuthPage({ register = false }: { register?: boolean }) {
           ) : (
             <Form
               fields={[
-                { key: "email", type: "email" },
-                { key: "password", type: "password" },
+                { key: "email", type: "email", autoComplete: "username" },
+                { key: "password", type: "password", autoComplete: "current-password" },
               ]}
               submit={submit}
               label="login"

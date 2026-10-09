@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useId, useState, type FormEvent } from "react";
 import { useI18n } from "../i18n/context";
 import { ApiError } from "../services/api";
 import { fieldPlaceholder } from "../i18n/placeholders";
@@ -24,6 +24,7 @@ export type Field = {
   minLength?: number;
   maxLength?: number;
   uploadContext?: UploadContext;
+  autoComplete?: string;
 };
 export function Form({
   fields,
@@ -41,6 +42,7 @@ export function Form({
   className?: string;
 }) {
   const { t, language } = useI18n();
+  const formId = useId();
   const [values, setValues] = useState<Values>(initial),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -119,6 +121,7 @@ export function Form({
         ) : (
           <label
             key={field.key}
+            htmlFor={["image-upload", "pdf-upload"].includes(field.type || "") ? undefined : `${formId}-${field.key}`}
             className={field.type === "checkbox" ? "check" : ""}
           >
             <span>{t(field.label || field.key)}</span>
@@ -138,6 +141,8 @@ export function Form({
               />
             ) : field.type === "select" ? (
               <select
+                id={`${formId}-${field.key}`}
+                name={field.key}
                 disabled={
                   field.disabled ||
                   (!!field.dependsOn && !values[field.dependsOn])
@@ -156,6 +161,8 @@ export function Form({
               </select>
             ) : field.type === "textarea" ? (
               <textarea
+                id={`${formId}-${field.key}`}
+                name={field.key}
                 placeholder={
                   field.placeholder ||
                   fieldPlaceholder(field.label || field.key, language, t)
@@ -167,11 +174,15 @@ export function Form({
             ) : field.type === "checkbox" ? (
               <input
                 type="checkbox"
+                id={`${formId}-${field.key}`}
+                name={field.key}
                 checked={!!values[field.key]}
                 onChange={(e) => change(field.key, e.target.checked)}
               />
             ) : (
               <PasswordInput
+                id={`${formId}-${field.key}`}
+                name={field.key}
                 aria-label={t(field.label || field.key)}
                 placeholder={
                   field.placeholder ||
@@ -191,7 +202,7 @@ export function Form({
                   field.type === "number" ? (field.step ?? "0.01") : undefined
                 }
                 autoComplete={
-                  field.type === "password" ? "new-password" : undefined
+                  field.autoComplete ?? (field.type === "password" ? "new-password" : field.type === "email" ? "email" : undefined)
                 }
                 value={String(values[field.key] ?? "")}
                 onChange={(e) =>
