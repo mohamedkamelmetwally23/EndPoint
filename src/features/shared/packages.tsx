@@ -25,6 +25,7 @@ export function PackageForm({
   const initial: Values = pkg
     ? {
         name: pkg.name,
+        coverUrl: pkg.coverUrl || "",
         collegeId: pkg.collegeId,
         academicYearId: pkg.academicYearId,
         termId: pkg.termId,
@@ -50,6 +51,7 @@ export function PackageForm({
       <Form
         fields={(values) => [
           { key: "name", label: "packageName" },
+          { key: "coverUrl", type: "image-upload", required: false, uploadContext: { purpose: "cover" } },
           {
             key: "collegeId",
             disabled: !!pkg,
@@ -144,6 +146,7 @@ export function PackageForm({
             pkg ? "PUT" : "POST",
             {
               ...values,
+              coverUrl: values.coverUrl || null,
               price: values.isFree ? 0 : Math.round(Number(values.price) * 100),
             },
           )

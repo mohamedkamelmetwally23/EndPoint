@@ -19,7 +19,9 @@ test("create and edit dialogs trap focus, close with Escape and fit mobile RTL d
   for (let i = 0; i < 10; i++) {
     await page.keyboard.press("Tab");
     expect(
-      await page.evaluate(() => !!document.activeElement?.closest("dialog")),
+      // Native modal dialogs may move focus to browser chrome when cycling.
+      // No control in the underlying application may receive focus.
+      await page.evaluate(() => document.activeElement === document.body || !!document.activeElement?.closest("dialog")),
     ).toBeTruthy();
   }
   await page.keyboard.press("Escape");

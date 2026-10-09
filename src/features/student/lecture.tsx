@@ -12,6 +12,7 @@ import {
 import { useI18n } from "../../i18n/context";
 import type { LectureDetail, Material } from "../../types/domain";
 import { PdfLink } from "../../components/pdf-link";
+import { fileUrl } from "../../services/storage";
 export function MaterialView({ material, hideTitle = false }: { material: Material; hideTitle?: boolean }) {
   let video = "";
   if (material.type === "youtube" && material.url) {
@@ -35,13 +36,13 @@ export function MaterialView({ material, hideTitle = false }: { material: Materi
       ) : material.type === "image" ? (
         <img
           className="material-image"
-          src={material.url}
+          src={fileUrl(material.url || "")}
           alt={material.title}
         />
       ) : material.type === "pdf" ? (
         <a
           className="file-link"
-          href={material.url}
+          href={fileUrl(material.url || "")}
           target="_blank"
           rel="noopener noreferrer"
         >

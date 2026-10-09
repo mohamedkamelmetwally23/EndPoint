@@ -4,6 +4,7 @@ import { TrendingUp, Receipt, Wallet } from "lucide-react";
 import { Dialog } from "../../components/dialog";
 import { useResource } from "../../hooks/use-resource";
 import { api } from "../../services/api";
+import { fileUrl } from "../../services/storage";
 import { Page, State, Money, DateText, Action } from "../../components/ui";
 import { Form } from "../../components/form";
 import { useI18n } from "../../i18n/context";
@@ -202,7 +203,7 @@ export function Accounts() {
                             onClick={() => setReceipt(e.receiptImage)}
                           >
                             <img
-                              src={e.receiptImage}
+                              src={fileUrl(e.receiptImage)}
                               alt={t("receiptImage")}
                               loading="lazy"
                             />
@@ -210,7 +211,7 @@ export function Accounts() {
                         )}
                         {e.receiptUrl && (
                           <a
-                            href={e.receiptUrl}
+                            href={fileUrl(e.receiptUrl)}
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -264,7 +265,7 @@ export function Accounts() {
         <Dialog title={t("receiptImage")} onClose={() => setReceipt(undefined)}>
           <img
             className="receipt-preview"
-            src={receipt}
+            src={fileUrl(receipt || "")}
             alt={t("receiptImage")}
           />
         </Dialog>

@@ -6,6 +6,7 @@ import { PasswordInput } from "./password-input";
 import { ImageUpload } from "./image-upload";
 import { PdfUpload } from "./pdf-upload";
 import { ActionLabel } from "./action-label";
+import type { UploadContext } from "../services/storage";
 export type Values = Record<string, string | number | boolean | string[]>;
 export type Field = {
   key: string;
@@ -22,6 +23,7 @@ export type Field = {
   hint?: string;
   minLength?: number;
   maxLength?: number;
+  uploadContext?: UploadContext;
 };
 export function Form({
   fields,
@@ -122,12 +124,14 @@ export function Form({
             <span>{t(field.label || field.key)}</span>
             {field.type === "pdf-upload" ? (
               <PdfUpload
+                context={field.uploadContext || { purpose: "summary" }}
                 value={String(values[field.key] || "")}
                 onChange={(value) => change(field.key, value)}
                 onBusyChange={setUploading}
               />
             ) : field.type === "image-upload" ? (
               <ImageUpload
+                context={field.uploadContext || { purpose: "receipt" }}
                 value={String(values[field.key] || "")}
                 onChange={(value) => change(field.key, value)}
                 onBusyChange={setUploading}

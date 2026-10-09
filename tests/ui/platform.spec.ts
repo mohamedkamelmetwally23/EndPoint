@@ -63,12 +63,13 @@ test("free claim, multi-subject learning, lecture completion and publication tim
   await expect(
     page.getByRole("heading", { name: "Databases", exact: true }),
   ).toBeVisible();
+  await page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Algorithms", exact: true }) }).click();
   await page.getByRole("link", { name: /Thinking in algorithms/ }).click();
   await expect(
     page.getByText("Break the problem into small steps.", { exact: false }),
   ).toBeVisible();
   await page.getByRole("button", { name: "Mark as Completed" }).click();
-  await expect(page.locator(".lecture-reader .badge")).toHaveText("Completed");
+  await expect(page.locator(".lecture-completion .badge")).toHaveText("Completed");
   await page.goto("/timeline");
   await expect(
     page.getByRole("link", { name: /Thinking in algorithms/ }),
@@ -78,7 +79,12 @@ test("free claim, multi-subject learning, lecture completion and publication tim
     page.getByRole("heading", { name: "Open Learning" }),
   ).toHaveCount(0);
   await page.goto("/learning");
-  await expect(page.getByText("1 / 1")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Open Learning", exact: true })).toBeVisible();
+  // Completion remains persisted even though package cards no longer show a progress fraction.
+  await page.getByRole("link").filter({has:page.getByRole("heading",{name:"Open Learning",exact:true})}).click();
+  await page.getByRole("link").filter({has:page.getByRole("heading",{name:"Algorithms",exact:true})}).click();
+  await page.getByRole("link", { name: /Thinking in algorithms/ }).click();
+  await expect(page.locator(".lecture-completion .badge")).toHaveText("Completed");
 });
 test("paid CTA creates one pending order and opens real configured contact URL", async ({
   page,
@@ -150,6 +156,7 @@ test("content manager sees assigned content and cannot publish", async ({
     .getByRole("link")
     .filter({ has: page.getByRole("heading", { name: "Open Learning" }) })
     .click();
+  await page.locator(".content-subject-heading").first().click();
   await page.getByRole("button", { name: "Add lecture" }).first().click();
   await expect(
     page.getByLabel("Status", { exact: true }).locator("option"),
@@ -172,7 +179,7 @@ test("lecturer has view-only content and relevant student learning report", asyn
   );
   await page.goto("/students");
   await expect(
-    page.locator("h2").filter({ hasText: "Browser Student" }).first(),
+    page.getByRole("cell", { name: "Browser Student", exact: true }).first(),
   ).toBeVisible();
   await expect(page.getByText("Complete Term", { exact: true })).toHaveCount(0);
 });
@@ -181,11 +188,9 @@ test("super admin can create academic structure and inspect orders, finance and 
 }) => {
   await login(page, "admin@browser.test");
   await page.goto("/academics");
-  await page.getByRole("button", { name: "Create", exact: true }).click();
+  await page.getByRole("button", { name: /Create.*Colleges/ }).click();
   await page.getByLabel("Name", { exact: true }).fill("Engineering");
-  await page
-    .getByLabel("Code", { exact: true })
-    .fill(`engineering-${Date.now()}`);
+  await page.getByLabel("Number of college years", { exact: true }).fill("4");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
     page.locator(".record-list").getByText("Engineering", { exact: true }),
@@ -238,7 +243,7 @@ test("super admin creates a package and grants content-manager publication permi
   await login(page, "admin@browser.test");
   await page.goto("/packages");
   await page.getByRole("button", { name: "Create", exact: true }).click();
-  await page.getByLabel("Name", { exact: true }).fill("Assigned Workshop");
+  await page.getByLabel("Package name", { exact: true }).fill("Assigned Workshop");
   await page
     .getByLabel("College", { exact: true })
     .selectOption({ label: "Faculty of Computing" });
@@ -249,18 +254,14 @@ test("super admin creates a package and grants content-manager publication permi
     .getByLabel("Term", { exact: true })
     .selectOption({ label: "Autumn Term" });
   await page.getByLabel("Free package", { exact: true }).check();
+  await page.getByLabel("Algorithms", { exact: true }).check();
   await page.getByLabel("Status", { exact: true }).selectOption("active");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await page
     .getByRole("link")
     .filter({ has: page.getByRole("heading", { name: "Assigned Workshop" }) })
     .click();
-  await page.getByRole("button", { name: "Add subject" }).click();
-  await page
-    .getByLabel("Subject", { exact: true })
-    .selectOption({ label: "Algorithms" });
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Algorithms" })).toBeVisible();
+  await expect(page.locator(".content-subject-name").filter({hasText:"Algorithms"})).toBeVisible();
   await page.goto("/people");
   await page
     .getByRole("button", { name: "Content Managers", exact: true })
@@ -289,6 +290,7 @@ test("super admin creates a package and grants content-manager publication permi
     .getByRole("link")
     .filter({ has: page.getByRole("heading", { name: "Assigned Workshop" }) })
     .click();
+  await page.locator(".content-subject-heading").first().click();
   await page.getByRole("button", { name: "Add lecture" }).click();
   await expect(
     page.getByLabel("Status", { exact: true }).locator("option"),

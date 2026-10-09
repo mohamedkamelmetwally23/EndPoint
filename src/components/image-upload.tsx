@@ -1,22 +1,26 @@
 import { useState } from "react";
 import { useI18n } from "../i18n/context";
-import { api } from "../services/api";
+import { fileUrl, uploadFile, type UploadContext } from "../services/storage";
 
 export function ImageUpload({
   value,
   onChange,
   onBusyChange,
+  context,
 }: {
   value: string;
   onChange: (value: string) => void;
   onBusyChange: (busy: boolean) => void;
+  context: UploadContext;
 }) {
   const { t } = useI18n();
   const [error, setError] = useState("");
+  const [uploading, setUploading] = useState(false);
   return (
     <span className="image-upload">
       <input
         type="file"
+        disabled={uploading}
         accept="image/png,image/jpeg,image/webp"
         onChange={async (event) => {
           const file = event.target.files?.[0];
@@ -31,18 +35,19 @@ export function ImageUpload({
             return;
           }
           onBusyChange(true);
+          setUploading(true);
           try {
-            const body = new FormData();
-            body.append("image", file);
-            onChange(await api<string>("/staff/receipt-image", "POST", body));
+            onChange((await uploadFile(file, context)).url);
           } catch (error) {
             setError(error instanceof Error ? error.message : "imageReadError");
           } finally {
             onBusyChange(false);
+            setUploading(false);
           }
         }}
       />
       <small>{t("receiptImageHelp")}</small>
+      {uploading && <small role="status">{t("uploadingFile")}</small>}
       {error && (
         <small role="alert" className="error">
           {t(error)}
@@ -52,7 +57,7 @@ export function ImageUpload({
         <>
           <img
             className="receipt-preview"
-            src={value}
+            src={fileUrl(value)}
             alt={t("receiptImage")}
           />
           <button type="button" onClick={() => onChange("")}>

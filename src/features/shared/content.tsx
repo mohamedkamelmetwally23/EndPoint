@@ -68,6 +68,7 @@ export function LectureForm({
         {
           key: "summaryUrl",
           type: "pdf-upload",
+          uploadContext: { purpose: "summary", scopeId: subjectId, editing: !!lecture },
           required: false,
         },
         {
@@ -359,7 +360,7 @@ export function ContentLecture() {
               >
                 <Form
                   key={editing?._id || "new"}
-                  fields={[
+                  fields={(values) => [
                     { key: "title" },
                     {
                       key: "type",
@@ -369,7 +370,8 @@ export function ContentLecture() {
                         label: s,
                       })),
                     },
-                    { key: "url", type: "url", required: false },
+                    { key: "url", type: values.type === "pdf" ? "pdf-upload" : values.type === "image" ? "image-upload" : "url", required: false,
+                      uploadContext: { purpose: "material", scopeId: id!, editing: !!editing } },
                     { key: "body", type: "textarea", required: false },
                     { key: "order", type: "number", min: 0 },
                   ]}

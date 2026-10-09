@@ -1,13 +1,11 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL } from "../services/api";
+import { fileUrl } from "../services/storage";
 
 export function PdfLink({ value, label }: { value: string; label: string }) {
   const [href, setHref] = useState("");
   useEffect(() => {
     if (!value.startsWith("data:application/pdf;base64,")) {
-      setHref(value.startsWith("/api/v1/summary-pdfs/")
-        ? `${API_BASE_URL}${value.slice("/api/v1".length)}`
-        : value);
+      setHref(fileUrl(value));
       return;
     }
     const bytes = Uint8Array.from(

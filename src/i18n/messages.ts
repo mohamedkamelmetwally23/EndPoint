@@ -1,4 +1,13 @@
 export const en: Record<string, string> = {
+  FILE_TOO_LARGE: "File exceeds the size limit (PDF: 20 MB, image: 2 MB).",
+  INVALID_FILE_TYPE: "Choose a valid PDF, PNG, JPEG or WebP file.",
+  FILE_UPLOAD_FAILED: "File upload failed. Check storage configuration and try again.",
+  FILE_NOT_FOUND: "File was not found.",
+  FILE_REUPLOAD_REQUIRED: "This legacy file needs migration or re-upload.",
+  FILE_ACCESS_DENIED: "You do not have permission to access this file.",
+  STORAGE_UNAVAILABLE: "File storage is not configured or is temporarily unavailable.",
+  uploadingFile: "Uploading and verifying file...",
+
   viewLectures: "View lectures",
   openLecture: "Open lecture",
   summaryUrl: "Summary (PDF, optional)",
@@ -240,6 +249,15 @@ export const en: Record<string, string> = {
   noPermission: "Your assignment allows viewing only.",
 };
 export const ar: Record<string, string> = {
+  FILE_TOO_LARGE: "الملف أكبر من الحد المسموح: 20 ميجابايت للـ PDF و2 ميجابايت للصورة.",
+  INVALID_FILE_TYPE: "اختر ملف PDF أو صورة PNG أو JPEG أو WebP صالحة.",
+  FILE_UPLOAD_FAILED: "فشل رفع الملف. راجع إعدادات التخزين وحاول مرة أخرى.",
+  FILE_NOT_FOUND: "الملف غير موجود.",
+  FILE_REUPLOAD_REQUIRED: "الملف القديم يحتاج ترحيل أو إعادة رفع.",
+  FILE_ACCESS_DENIED: "ليس لديك صلاحية للوصول لهذا الملف.",
+  STORAGE_UNAVAILABLE: "تخزين الملفات غير مُعد أو غير متاح مؤقتًا.",
+  uploadingFile: "جارٍ رفع الملف والتحقق منه...",
+
   viewLectures: "عرض المحاضرات",
   openLecture: "فتح المحاضرة",
   summaryUrl: "ملخص (PDF، اختياري)",
