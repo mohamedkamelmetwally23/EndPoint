@@ -51,6 +51,29 @@
 .form-dialog::backdrop {
   background: #08142599;
 }
+.form-dialog.confirmation-dialog {
+  width: min(480px, calc(100% - 32px));
+  border-radius: 24px;
+}
+.confirmation-dialog .dialog-body {
+  text-align: center;
+  padding: 28px;
+}
+.confirmation-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 20px;
+  border-radius: 20px;
+  background: var(--tint);
+  color: var(--primary);
+}
+.confirmation-action { margin: 0 0 12px; font-size: 20px; }
+.order-receipt-thumbnail { display: block; width: 72px; height: 64px; object-fit: cover; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 6px; }
+.confirmation-description { color: var(--muted); line-height: 1.8; margin: 0; }
+.confirmation-buttons { display: grid; gap: 12px; margin-top: 28px; }
+.confirmation-buttons button { width: 100%; justify-content: center; }
 .dialog-heading {
   position: sticky;
   top: 0;

@@ -123,7 +123,7 @@ export function Workspace() {
         <main className="main">
           <PreferencesContext.Provider value={role === "super_admin" ? {
             ...preferences,
-            t: (key) => ({
+            t: (key) => preferences.language === "ar" ? t(key) : ({
               academicYearId: "Year",
               academic_years: "Years",
               academicYearNumber: "Year number",

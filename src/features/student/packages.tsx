@@ -1,6 +1,7 @@
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import { Dialog } from "../../components/dialog";
+import { ImageUpload } from "../../components/image-upload";
 import { BookOpen, ChevronLeft, Layers3 } from "lucide-react";
 import { useResource } from "../../hooks/use-resource";
 import { api } from "../../services/api";
@@ -82,6 +83,8 @@ export function StudentPackage() {
     navigate = useNavigate();
   const [busy, setBusy] = useState(false),
     [checkoutOpen, setCheckoutOpen] = useState(false),
+    [receiptImage, setReceiptImage] = useState(""),
+    [uploading, setUploading] = useState(false),
     [orderSubmitted, setOrderSubmitted] = useState(false),
     [error, setError] = useState("");
   const buy = async () => {
@@ -92,7 +95,8 @@ export function StudentPackage() {
         await api(`/student/packages/${id}/claim`, "POST");
         navigate(`/student/packages/${id}`);
       } else {
-        await api(`/student/packages/${id}/buy`, "POST");
+        if (!receiptImage || uploading) return;
+        await api(`/student/packages/${id}/buy`, "POST", { receiptImage });
         setOrderSubmitted(true);
         setCheckoutOpen(false);
       }
@@ -205,19 +209,23 @@ export function StudentPackage() {
         <Dialog
           title={t("purchaseTitle")}
           onClose={() => {
-            if (!busy) setCheckoutOpen(false);
+            if (!busy && !uploading) setCheckoutOpen(false);
           }}
         >
           <p>{detail.package.name}</p>
           <p><Money value={detail.package.price} /></p>
           <p>{t("instapayInstructions")}</p>
           <p><strong dir="ltr">01200929641</strong></p>
+          <label>
+            <span>{t("receiptImage")}</span>
+            <ImageUpload value={receiptImage} onChange={setReceiptImage} onBusyChange={setUploading} context={{ purpose: "receipt" }} />
+          </label>
           {error && <p role="alert" className="error">{t(error)}</p>}
           <div className="actions">
-            <button className="primary" disabled={busy} onClick={() => void buy()}>
+            <button className="primary" disabled={busy || uploading || !receiptImage} onClick={() => void buy()}>
               {t(busy ? "loading" : "confirmTransfer")}
             </button>
-            <button disabled={busy} onClick={() => setCheckoutOpen(false)}>{t("cancel")}</button>
+            <button disabled={busy || uploading} onClick={() => setCheckoutOpen(false)}>{t("cancel")}</button>
           </div>
         </Dialog>
       )}

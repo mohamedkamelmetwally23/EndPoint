@@ -107,12 +107,33 @@ test("paid CTA opens InstaPay dialog and submits a pending request after confirm
   await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
   expect(requests).toBe(0);
   await page.getByRole("button", { name: "Buy", exact: true }).click();
+  await expect(dialog.getByRole("button", { name: "Confirm transfer" })).toBeDisabled();
+  await page.route("https://vercel.com/api/blob**", async route => {
+    const request = route.request();
+    const pathname = new URL(request.url()).searchParams.get("pathname");
+    const response = await page.request.post(`http://127.0.0.1:4001/__test/blob?pathname=${encodeURIComponent(pathname || "")}`, {
+      data: request.postDataBuffer()!, headers: { "content-type": request.headers()["x-content-type"] || request.headers()["content-type"] || "image/png" },
+    });
+    await route.fulfill({ status: 200, contentType: "application/json", body: await response.text() });
+  });
+  await dialog.locator('input[type="file"]').setInputFiles({
+    name: "receipt.png", mimeType: "image/png",
+    buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII=", "base64"),
+  });
+  await expect(dialog.locator(".receipt-preview")).toBeVisible();
   await dialog.getByRole("button", { name: "Confirm transfer" }).click();
   await expect(page.getByRole("status")).toContainText("awaiting approval");
   await expect(dialog).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Buy", exact: true })).toBeDisabled();
   expect(requests).toBe(1);
   await expect(page).toHaveURL(/preview=true/);
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await login(page, "admin@browser.test");
+  await page.goto("/orders");
+  const image = page.locator(".order-receipt-thumbnail").first();
+  await expect(image).toBeVisible();
+  const url = await image.getAttribute("src");
+  expect((await page.request.get(url!)).ok()).toBeTruthy();
 });
 test("free packages can be claimed directly from Explore", async ({ page }) => {
   await student(page);
@@ -232,10 +253,15 @@ test("super admin completes a real paid order and grants its package", async ({
   await page.goto("/orders");
   const row = page.locator(`tr[data-order-id="${purchase.data.order._id}"]`);
   await expect(row).toBeVisible();
-  page.once("dialog", (dialog) => dialog.accept());
   await row
     .getByRole("button", { name: "Mark as Paid & Grant Access" })
     .click();
+  const confirmation = page.getByRole("dialog");
+  await expect(confirmation).toContainText("Confirm payment has been received");
+  await confirmation.getByRole("button", { name: "Go back", exact: true }).click();
+  await expect(row).toBeVisible();
+  await row.getByRole("button", { name: "Mark as Paid & Grant Access" }).click();
+  await confirmation.getByRole("button", { name: "Mark as Paid & Grant Access" }).click();
   await expect(row).toHaveCount(0);
   await page.getByRole("button", { name: "Completed", exact: true }).click();
   await expect(row).toBeVisible();

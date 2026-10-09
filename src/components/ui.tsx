@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useI18n } from "../i18n/context";
 import { api } from "../services/api";
 import { ActionLabel } from "./action-label";
+import { Dialog } from "./dialog";
 import {
   ChevronLeft,
   Languages,
@@ -169,30 +170,51 @@ export function Action({
 }) {
   const { t } = useI18n();
   const [busy, setBusy] = useState(false),
+    [confirming, setConfirming] = useState(false),
     [error, setError] = useState("");
+  const execute = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      await api(path, method, body);
+      setConfirming(false);
+      onDone();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "INTERNAL_ERROR");
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
     <div className="inline-action">
       <button
         className={label === "delete" ? "danger-action" : undefined}
         title={t(label)}
         disabled={busy}
-        onClick={async () => {
-          if (confirm && !window.confirm(t("confirmAction"))) return;
-          setBusy(true);
+        onClick={() => {
           setError("");
-          try {
-            await api(path, method, body);
-            onDone();
-          } catch (e) {
-            setError(e instanceof Error ? e.message : "INTERNAL_ERROR");
-          } finally {
-            setBusy(false);
-          }
+          if (confirm) setConfirming(true);
+          else void execute();
         }}
       >
         <ActionLabel action={busy ? "loading" : label} />
       </button>
-      {error && (
+      {confirming && (
+        <Dialog className="confirmation-dialog" title={t("confirmAction")} onClose={() => { if (!busy) setConfirming(false); }}>
+          <div className="confirmation-icon"><ShoppingBag size={28} aria-hidden="true" /></div>
+          <h3 className="confirmation-action">{t(label)}</h3>
+          {label === "completeOrder" && <p className="confirmation-description">{t("completeOrderHelp")}</p>}
+          {error && <p role="alert" className="error">{t(error)}</p>}
+          <div className="confirmation-buttons">
+            <button className={label === "delete" ? "danger-action" : "primary"} disabled={busy} onClick={() => void execute()}>
+              <ActionLabel action={busy ? "loading" : label} />
+            </button>
+            <button disabled={busy} onClick={() => setConfirming(false)}>{t("goBack")}</button>
+          </div>
+        </Dialog>
+      )}
+      {error && !confirming && (
         <span role="alert" className="error">
           {t(error)}
         </span>

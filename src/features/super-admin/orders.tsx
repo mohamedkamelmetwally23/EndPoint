@@ -10,6 +10,7 @@ import {
 } from "../../components/ui";
 import { useI18n } from "../../i18n/context";
 import type { Order } from "../../types/domain";
+import { fileUrl } from "../../services/storage";
 export function Orders() {
   const [status, setStatus] = useState("pending"),
     { t } = useI18n(),
@@ -42,6 +43,7 @@ export function Orders() {
                   "student",
                   "package",
                   "price",
+                  "receiptImage",
                   "contact",
                   "createdAt",
                   "status",
@@ -58,6 +60,14 @@ export function Orders() {
                   <td data-label={t("package")}>{order.packageId.name}</td>
                   <td data-label={t("price")}>
                     <Money value={order.priceSnapshot} />
+                  </td>
+                  <td data-label={t("receiptImage")}>
+                    {order.receiptImage ? (
+                      <a href={fileUrl(order.receiptImage)} target="_blank" rel="noopener noreferrer">
+                        <img className="order-receipt-thumbnail" src={fileUrl(order.receiptImage)} alt={t("receiptImage")} />
+                        {t("viewReceipt")}
+                      </a>
+                    ) : "—"}
                   </td>
                   <td data-label={t("contact")}>
                     <a

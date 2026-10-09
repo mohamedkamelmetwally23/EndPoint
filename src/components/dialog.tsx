@@ -7,10 +7,12 @@ export function Dialog({
   title,
   onClose,
   children,
+  className = "",
 }: {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  className?: string;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -38,7 +40,7 @@ export function Dialog({
   return createPortal(
     <dialog
       ref={ref}
-      className="form-dialog"
+      className={`form-dialog ${className}`}
       aria-labelledby={titleId}
       onCancel={(event) => {
         event.preventDefault();

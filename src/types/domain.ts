@@ -124,6 +124,7 @@ export type Audit = {
   timestamp: string;
 };
 export type Order = {
+  receiptImage?: string;
   _id: string;
   studentId: User;
   packageId: Ref;
