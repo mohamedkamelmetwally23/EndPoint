@@ -123,6 +123,7 @@ export function Accounts() {
                   { key: "notes", type: "textarea", required: false },
                   {
                     key: "receiptImage",
+                    inlineImage: true,
                     type: "image-upload",
                     required: false,
                   },

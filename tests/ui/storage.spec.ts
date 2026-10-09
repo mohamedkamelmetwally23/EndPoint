@@ -2,10 +2,10 @@ import { test, expect, type Page } from "@playwright/test";
 
 const pdf = Buffer.from("%PDF-1.7\nexample storage test\n%%EOF");
 const png = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jD1sAAAAASUVORK5CYII=","base64");
-async function login(page: Page) {
+async function login(page: Page, email = "admin@browser.test") {
   await page.setExtraHTTPHeaders({ "X-Forwarded-For": `192.0.2.${Math.floor(Math.random()*250)+1}` });
   await page.goto("/login");
-  await page.getByLabel("Email",{exact:true}).fill("admin@browser.test");
+  await page.getByLabel("Email",{exact:true}).fill(email);
   await page.getByLabel("Password",{exact:true}).fill("Browser-test-password!");
   await page.getByRole("button",{name:"Sign in",exact:true}).click();
   await expect(page.locator(".sidebar")).toBeVisible();
@@ -72,6 +72,31 @@ test("image upload stores a public cover reference that renders after refresh",a
   await expect(page.locator(`img[src="${src}"]`)).toHaveJSProperty("naturalWidth",1);
 
 });
+test("staff expense receipts are saved as base64 and visible to the super admin", async ({ page }) => {
+  test.setTimeout(90000);
+  for (const email of ["manager@browser.test", "lecturer@browser.test"]) {
+    await login(page, email);
+    await page.goto("/finance");
+    await page.getByRole("button", { name: "Add expense", exact: true }).click();
+    const dialog = page.getByRole("dialog");
+    await dialog.getByLabel("Category", { exact: true }).fill(email);
+    await dialog.locator('input[name="amount"]').fill("15");
+    await dialog.locator('input[type="file"]').setInputFiles({ name: "receipt.png", mimeType: "image/png", buffer: png });
+    await expect(dialog.locator(".receipt-preview")).toHaveAttribute("src", /^data:image\/png;base64,/);
+    await dialog.getByRole("button", { name: "Save", exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  }
+  await login(page);
+  await page.goto("/finance");
+  for (const email of ["manager@browser.test", "lecturer@browser.test"]) {
+    const row = page.getByRole("row").filter({ hasText: email });
+    await row.getByRole("button", { name: "View receipt image" }).click();
+    await expect(page.getByRole("dialog").getByRole("img")).toHaveAttribute("src", `data:image/png;base64,${png.toString("base64")}`);
+    await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
+  }
+});
+
 test("upload completion failure shows an error without replacing the current file",async ({page}) => {
   await login(page); await blobTransport(page); await editLecture(page);
   await page.route("**/api/v1/files/*/complete",route => route.fulfill({status:503,json:{error:{code:"FILE_UPLOAD_FAILED"}}}));

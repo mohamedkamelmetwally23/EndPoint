@@ -25,6 +25,7 @@ export type Field = {
   maxLength?: number;
   uploadContext?: UploadContext;
   autoComplete?: string;
+  inlineImage?: boolean;
 };
 export function Form({
   fields,
@@ -134,6 +135,7 @@ export function Form({
               />
             ) : field.type === "image-upload" ? (
               <ImageUpload
+                inline={field.inlineImage}
                 context={field.uploadContext || { purpose: "receipt" }}
                 value={String(values[field.key] || "")}
                 onChange={(value) => change(field.key, value)}
