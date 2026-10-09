@@ -1,5 +1,6 @@
 import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
+import { Dialog } from "../../components/dialog";
 import { BookOpen, ChevronLeft, Layers3 } from "lucide-react";
 import { useResource } from "../../hooks/use-resource";
 import { api } from "../../services/api";
@@ -80,6 +81,8 @@ export function StudentPackage() {
     { t } = useI18n(),
     navigate = useNavigate();
   const [busy, setBusy] = useState(false),
+    [checkoutOpen, setCheckoutOpen] = useState(false),
+    [orderSubmitted, setOrderSubmitted] = useState(false),
     [error, setError] = useState("");
   const buy = async () => {
     setBusy(true);
@@ -89,11 +92,9 @@ export function StudentPackage() {
         await api(`/student/packages/${id}/claim`, "POST");
         navigate(`/student/packages/${id}`);
       } else {
-        const result = await api<{ whatsappUrl: string }>(
-          `/student/packages/${id}/buy`,
-          "POST",
-        );
-        window.location.assign(result.whatsappUrl);
+        await api(`/student/packages/${id}/buy`, "POST");
+        setOrderSubmitted(true);
+        setCheckoutOpen(false);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "INTERNAL_ERROR");
@@ -129,8 +130,12 @@ export function StudentPackage() {
                     </strong>
                     <button
                       className="primary"
-                      disabled={busy}
-                      onClick={() => void buy()}
+                      disabled={busy || orderSubmitted}
+                      onClick={() => {
+                        setError("");
+                        if (detail.package.isFree) void buy();
+                        else setCheckoutOpen(true);
+                      }}
                     >
                       {t(
                         busy
@@ -140,7 +145,10 @@ export function StudentPackage() {
                             : "buy",
                       )}
                     </button>
-                    {error && (
+                    {orderSubmitted && (
+                      <p role="status">{t("purchaseSubmitted")}</p>
+                    )}
+                    {error && !checkoutOpen && (
                       <p role="alert" className="error">
                         {t(error)}
                       </p>
@@ -193,6 +201,27 @@ export function StudentPackage() {
           </>
         )}
       </Page>
+      {checkoutOpen && detail && (
+        <Dialog
+          title={t("purchaseTitle")}
+          onClose={() => {
+            if (!busy) setCheckoutOpen(false);
+          }}
+        >
+          <p>{detail.package.name}</p>
+          <p><Money value={detail.package.price} /></p>
+          <p>{t("instapayInstructions")}</p>
+          <p><strong dir="ltr">01200929641</strong></p>
+          <p>{t("purchaseReviewHelp")}</p>
+          {error && <p role="alert" className="error">{t(error)}</p>}
+          <div className="actions">
+            <button className="primary" disabled={busy} onClick={() => void buy()}>
+              {t(busy ? "loading" : "confirmTransfer")}
+            </button>
+            <button disabled={busy} onClick={() => setCheckoutOpen(false)}>{t("cancel")}</button>
+          </div>
+        </Dialog>
+      )}
     </>
   );
 }

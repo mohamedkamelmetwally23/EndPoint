@@ -86,7 +86,7 @@ test("free claim, multi-subject learning, lecture completion and publication tim
   await page.getByRole("link", { name: /Thinking in algorithms/ }).click();
   await expect(page.locator(".lecture-completion .badge")).toHaveText("Completed");
 });
-test("paid CTA creates one pending order and opens real configured contact URL", async ({
+test("paid CTA opens InstaPay dialog and submits a pending request after confirmation", async ({
   page,
 }) => {
   await student(page);
@@ -95,11 +95,24 @@ test("paid CTA creates one pending order and opens real configured contact URL",
     .getByRole("link")
     .filter({ has: page.getByRole("heading", { name: "Complete Term" }) })
     .click();
-  await page.route("https://wa.me/**", (route) =>
-    route.fulfill({ body: "Contact purchase" }),
-  );
-  await page.getByRole("button", { name: "Buy via WhatsApp" }).click();
-  await expect(page).toHaveURL(/wa\.me\/201234567890/);
+  let requests = 0;
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().endsWith("/buy")) requests++;
+  });
+  await page.getByRole("button", { name: "Buy", exact: true }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog).toContainText("01200929641");
+  await expect(dialog).toContainText("InstaPay");
+  expect(requests).toBe(0);
+  await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+  expect(requests).toBe(0);
+  await page.getByRole("button", { name: "Buy", exact: true }).click();
+  await dialog.getByRole("button", { name: "Confirm transfer" }).click();
+  await expect(page.getByRole("status")).toContainText("awaiting approval");
+  await expect(dialog).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Buy", exact: true })).toBeDisabled();
+  expect(requests).toBe(1);
+  await expect(page).toHaveURL(/preview=true/);
 });
 test("free packages can be claimed directly from Explore", async ({ page }) => {
   await student(page);
