@@ -1,4 +1,5 @@
 export const en: Record<string, string> = {
+  UPLOAD_ENDPOINT_UNAVAILABLE: "The upload endpoint is unavailable. Deploy the updated backend and check the API proxy.",
   FILE_TOO_LARGE: "File exceeds the size limit (PDF: 20 MB, image: 2 MB).",
   INVALID_FILE_TYPE: "Choose a valid PDF, PNG, JPEG or WebP file.",
   FILE_UPLOAD_FAILED: "File upload failed. Check storage configuration and try again.",
@@ -249,6 +250,7 @@ export const en: Record<string, string> = {
   noPermission: "Your assignment allows viewing only.",
 };
 export const ar: Record<string, string> = {
+  UPLOAD_ENDPOINT_UNAVAILABLE: "مسار رفع الملفات غير متاح. انشر تحديث الباك وتأكد من توجيه طلبات API إليه.",
   FILE_TOO_LARGE: "الملف أكبر من الحد المسموح: 20 ميجابايت للـ PDF و2 ميجابايت للصورة.",
   INVALID_FILE_TYPE: "اختر ملف PDF أو صورة PNG أو JPEG أو WebP صالحة.",
   FILE_UPLOAD_FAILED: "فشل رفع الملف. راجع إعدادات التخزين وحاول مرة أخرى.",
