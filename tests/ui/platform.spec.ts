@@ -121,6 +121,16 @@ test("paid CTA opens InstaPay dialog and submits a pending request after confirm
   await expect(page.getByRole("button", { name: "Buy", exact: true })).toBeDisabled();
   expect(requests).toBe(1);
   await expect(page).toHaveURL(/preview=true/);
+  const packageUrl = page.url();
+  const account = await (await page.request.get(`${root}/auth/me`)).json();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Buy", exact: true })).toBeDisabled();
+  await expect(page.getByRole("status")).toContainText("awaiting approval");
+  const duplicate = await page.request.post(`${root}/student/packages/${packageUrl.split("/packages/")[1].split("?")[0]}/buy`, {
+    data: { receiptImage: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII=" },
+  });
+  expect(duplicate.ok()).toBeTruthy();
+  const existing = await duplicate.json();
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await login(page, "admin@browser.test");
   await page.goto("/orders");
@@ -131,6 +141,21 @@ test("paid CTA opens InstaPay dialog and submits a pending request after confirm
   expect(uploads).toBe(0);
   await image.click();
   await expect(page.getByRole("dialog").getByRole("img")).toHaveAttribute("src", url!);
+  await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
+  await page.request.post(`${root}/admin/orders/${existing.data.order._id}/cancel`);
+  await page.getByRole("button", { name: "Sign out", exact: true }).click();
+  await login(page, account.data.user.email);
+  await page.goto(packageUrl);
+  await expect(page.getByRole("status")).toContainText("was rejected");
+  await expect(page.getByRole("button", { name: "Buy", exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "Buy", exact: true }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await page.getByRole("dialog").locator('input[type="file"]').setInputFiles({
+    name: "receipt.png", mimeType: "image/png",
+    buffer: Buffer.from(url!.split(",")[1], "base64"),
+  });
+  await page.getByRole("dialog").getByRole("button", { name: "Confirm transfer" }).click();
+  await expect(page.getByRole("status")).toContainText("awaiting approval");
 });
 test("free packages can be claimed directly from Explore", async ({ page }) => {
   await student(page);

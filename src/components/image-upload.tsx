@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { Upload, ImagePlus } from "lucide-react";
 import { useI18n } from "../i18n/context";
 import { fileUrl, uploadFile, type UploadContext } from "../services/storage";
 
@@ -18,9 +19,18 @@ export function ImageUpload({
   const { t } = useI18n();
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
   return (
-    <span className="image-upload">
+    <span className={`image-upload${inline ? " receipt-upload" : ""}`}>
+      {inline && (
+        <button type="button" className="receipt-upload-button" disabled={uploading} onClick={() => input.current?.click()}>
+          {value ? <ImagePlus size={24} /> : <Upload size={24} />}
+          <span>{t(uploading ? "loading" : value ? "replaceReceipt" : "chooseReceipt")}</span>
+        </button>
+      )}
       <input
+        ref={input}
+        hidden={inline}
         type="file"
         disabled={uploading}
         accept="image/png,image/jpeg,image/webp"

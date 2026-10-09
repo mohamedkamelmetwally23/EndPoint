@@ -107,6 +107,8 @@ export function StudentPackage() {
     }
   };
   const detail = resource.data;
+  const pending = orderSubmitted || detail?.orderStatus === "pending";
+  const completed = detail?.orderStatus === "completed";
   return (
     <>
       <Back to={preview ? "/explore" : "/learning"} />
@@ -134,7 +136,7 @@ export function StudentPackage() {
                     </strong>
                     <button
                       className="primary"
-                      disabled={busy || orderSubmitted}
+                      disabled={busy || pending || completed}
                       onClick={() => {
                         setError("");
                         if (detail.package.isFree) void buy();
@@ -149,9 +151,13 @@ export function StudentPackage() {
                             : "buy",
                       )}
                     </button>
-                    {orderSubmitted && (
-                      <p role="status">{t("purchaseSubmitted")}</p>
+                    {pending && (
+                      <p role="status" className="purchase-status pending">{t("purchaseSubmitted")}</p>
                     )}
+                    {!pending && detail.orderStatus === "cancelled" && (
+                      <p role="status" className="purchase-status rejected">{t("purchaseRejected")}</p>
+                    )}
+                    {completed && <p role="status" className="purchase-status approved">{t("purchaseApproved")}</p>}
                     {error && !checkoutOpen && (
                       <p role="alert" className="error">
                         {t(error)}

@@ -79,6 +79,7 @@ export type Assignment = {
   active: boolean;
 };
 export type PackageDetail = {
+  orderStatus?: "pending" | "completed" | "cancelled" | null;
   package: Package;
   subjects: Subject[];
   lectures: Lecture[];
