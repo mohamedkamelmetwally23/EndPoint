@@ -5,12 +5,14 @@ import { useI18n } from "../../i18n/context";
 import { api } from "../../services/api";
 import { useResource } from "../../hooks/use-resource";
 import type { Academics } from "../../types/domain";
+import { academicYearLabel, academicTermLabel } from "../../i18n/academic-year";
 export function Profile() {
   const { account, refresh, logout } = useAuth(),
-    { t } = useI18n(),
+    { t, language } = useI18n(),
     academics = useResource<Academics>("/public/academics");
   if (!account) return null;
   const user = account.user;
+  const year = academics.data?.academic_years.find(c => c._id === user.academicYearId);
   return (
     <Page title="profile">
       <div className="profile-grid">
@@ -37,12 +39,10 @@ export function Profile() {
               </dd>
               <dt>{t("academicYearId")}</dt>
               <dd>
-                {academics.data?.academic_years.find(
-                  (c) => c._id === user.academicYearId,
-                )?.name || "—"}
+                {year ? academicYearLabel(year.name, language) : "—"}
               </dd>
               <dt>{t("activeTerm")}</dt>
-              <dd>{account.activeTerm?.name || t("noActiveTerm")}</dd>
+              <dd>{account.activeTerm ? academicTermLabel(account.activeTerm, year, language) : t("noActiveTerm")}</dd>
               <dt>{t("device")}</dt>
               <dd>
                 {account.device ? (

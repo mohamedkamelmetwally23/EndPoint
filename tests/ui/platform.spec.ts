@@ -258,6 +258,19 @@ test("super admin can create academic structure and inspect orders, finance and 
   await page.goto("/audit");
   await expect(page.getByRole("heading", { name: "Audit Logs" })).toBeVisible();
 });
+test("super admin can switch login monitoring tabs in both languages", async ({ page }) => {
+  await login(page, "admin@browser.test");
+  await page.goto("/audit");
+  await page.getByRole("button", { name: "Over 10 logins today", exact: true }).click();
+  await expect(page.getByRole("columnheader", { name: "Sign-in count" })).toBeVisible();
+  await page.getByRole("button", { name: "Different device", exact: true }).click();
+  await expect(page.getByText(/including blocked student attempts/)).toBeVisible();
+  await page.getByRole("button", { name: "Language", exact: true }).click();
+  await expect(page.getByRole("button", { name: "دخول من جهاز مختلف", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "أكثر من ١٠ مرات دخول اليوم", exact: true }).click();
+  await expect(page.getByRole("columnheader", { name: "عدد مرات الدخول" })).toBeVisible();
+});
+
 test("super admin completes a real paid order and grants its package", async ({
   page,
 }) => {
