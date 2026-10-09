@@ -212,7 +212,6 @@ export function StudentPackage() {
           <p><Money value={detail.package.price} /></p>
           <p>{t("instapayInstructions")}</p>
           <p><strong dir="ltr">01200929641</strong></p>
-          <p>{t("purchaseReviewHelp")}</p>
           {error && <p role="alert" className="error">{t(error)}</p>}
           <div className="actions">
             <button className="primary" disabled={busy} onClick={() => void buy()}>

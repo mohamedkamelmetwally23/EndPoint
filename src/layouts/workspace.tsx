@@ -17,11 +17,13 @@ import {
 } from "lucide-react";
 import { useAuth } from "../features/auth/context";
 import { useI18n } from "../i18n/context";
+import { PreferencesContext } from "../i18n/state";
 import { PreferencesControls, State } from "../components/ui";
 export function Workspace() {
   const { account, loading, logout } = useAuth(),
-    { t } = useI18n(),
+    preferences = useI18n(),
     [open, setOpen] = useState(false);
+  const { t } = preferences;
   if (loading) return <State loading />;
   if (!account) return <Navigate to="/login" replace />;
   const role = account.user.role;
@@ -119,7 +121,20 @@ export function Workspace() {
           <PreferencesControls />
         </header>
         <main className="main">
-          <Outlet />
+          <PreferencesContext.Provider value={role === "super_admin" ? {
+            ...preferences,
+            t: (key) => ({
+              academicYearId: "Year",
+              academic_years: "Years",
+              academicYearNumber: "Year number",
+              termId: "Semester",
+              terms: "Semesters",
+              activeTerm: "Active semester",
+              yearCount: "Number of years",
+            } as Record<string, string>)[key] || t(key),
+          } : preferences}>
+            <Outlet />
+          </PreferencesContext.Provider>
         </main>
       </div>
     </div>

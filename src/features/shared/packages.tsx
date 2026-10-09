@@ -4,12 +4,13 @@ import { Layers3 } from "lucide-react";
 import { Dialog } from "../../components/dialog";
 import { Link } from "react-router-dom";
 import { useResource } from "../../hooks/use-resource";
+import { useAdminAcademics } from "../../hooks/use-admin-academics";
 import { api } from "../../services/api";
 import { useAuth } from "../auth/context";
 import { useI18n } from "../../i18n/context";
 import { Page, State, Badge, Money } from "../../components/ui";
 import { Form, type Values } from "../../components/form";
-import type { Package, Academics } from "../../types/domain";
+import type { Package } from "../../types/domain";
 import { academicYearLabel } from "../../i18n/academic-year";
 export function PackageForm({
   pkg,
@@ -20,7 +21,7 @@ export function PackageForm({
   onDone: () => void;
   onClose: () => void;
 }) {
-  const resource = useResource<Academics>("/admin/academics"),
+  const resource = useAdminAcademics(),
     { t, language } = useI18n();
   const initial: Values = pkg
     ? {

@@ -16,6 +16,7 @@ export type Academic = Ref & {
   academicYearId?: string;
   status: string;
   order?: number;
+  localOrder?: number;
   description?: string;
 };
 export type Academics = {

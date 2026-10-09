@@ -2,11 +2,12 @@ import { ActionLabel } from "../../components/action-label";
 import { useState } from "react";
 import { Dialog } from "../../components/dialog";
 import { useResource } from "../../hooks/use-resource";
+import { useAdminAcademics } from "../../hooks/use-admin-academics";
 import { api } from "../../services/api";
 import { Page, State, Badge, Action } from "../../components/ui";
 import { Form, type Values } from "../../components/form";
 import { useI18n } from "../../i18n/context";
-import type { User, Package, Academics, Ref } from "../../types/domain";
+import type { User, Package, Ref } from "../../types/domain";
 import { Assignments } from "./assignments";
 type Inspection = {
   user: User;
@@ -69,7 +70,7 @@ export function People() {
     [selected, setSelected] = useState<User>(),
     [create, setCreate] = useState(false),
     resource = useResource<User[]>(`/admin/users?role=${role}`),
-    academics = useResource<Academics>("/admin/academics"),
+    academics = useAdminAcademics(),
     { t } = useI18n();
   const initial: Values = selected
     ? {

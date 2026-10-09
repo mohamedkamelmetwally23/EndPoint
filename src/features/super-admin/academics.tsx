@@ -1,7 +1,7 @@
 import { ActionLabel } from "../../components/action-label";
 import { useState } from "react";
 import { Dialog } from "../../components/dialog";
-import { useResource } from "../../hooks/use-resource";
+import { useAdminAcademics } from "../../hooks/use-admin-academics";
 import { api } from "../../services/api";
 import { Page, State, Badge } from "../../components/ui";
 import { Form, type Field, type Values } from "../../components/form";
@@ -9,7 +9,7 @@ import { useI18n } from "../../i18n/context";
 import type { Academics, Academic } from "../../types/domain";
 import { academicYearLabel } from "../../i18n/academic-year";
 export function AcademicStructure() {
-  const resource = useResource<Academics>("/admin/academics"),
+  const resource = useAdminAcademics(),
     { t, language } = useI18n(),
     [college, setCollege] = useState(""),
     [year, setYear] = useState(""),
