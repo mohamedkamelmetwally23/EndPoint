@@ -39,9 +39,15 @@ async function claim(page: Page) {
     .filter({ has: page.getByRole("heading", { name: "Open Learning" }) })
     .click();
   await expect(page.getByRole("heading", { name: "Open Learning", level: 1, exact: true })).toBeVisible();
+  // Subject headings also appear in preview; they do not prove ownership yet.
+  const claimed = page.waitForResponse(response =>
+    response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/claim"),
+  );
   await page.getByRole("button", { name: "Get for Free", exact: true }).click();
+  expect((await claimed).status()).toBe(200);
+  await expect(page).toHaveURL(/\/student\/packages\/[^/?]+$/);
   await expect(
-    page.getByRole("heading", { name: "Algorithms", exact: true }),
+    page.getByRole("link").filter({ has: page.getByRole("heading", { name: "Algorithms", exact: true }) }),
   ).toBeVisible();
 }
 test("registration contains placement but no term selector", async ({
@@ -406,8 +412,14 @@ test("responsive calendar and drawer across requested viewports, languages and t
 }) => {
   await student(page);
   await claim(page);
+  const timelineResponse = page.waitForResponse(response => response.url().includes("/student/timeline?"));
   await page.goto("/timeline");
-  await expect(page.locator(".calendar-event").first()).toBeVisible();
+  const response = await timelineResponse;
+  expect(response.status()).toBe(200);
+  expect((await response.json()).data).toEqual(expect.arrayContaining([
+    expect.objectContaining({ title: "Thinking in algorithms" }),
+  ]));
+  await expect(page.getByRole("link", { name: /Thinking in algorithms/ })).toBeVisible();
   for (const width of [375, 768, 1024, 1366, 1440, 1920]) {
     await page.setViewportSize({ width, height: 900 });
     for (const language of ["en", "ar"]) {
