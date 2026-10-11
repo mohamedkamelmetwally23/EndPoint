@@ -1,0 +1,66 @@
+{
+  "me": {
+    "url": "http://127.0.0.1:4175/api/v1/auth/me",
+    "status": 200,
+    "body": {
+      "data": {
+        "user": {
+          "_id": "6acb999961bbb2d61b6aad5a",
+          "fullName": "Local Verified Student",
+          "role": "student"
+        }
+      }
+    }
+  },
+  "profile": {
+    "url": "http://127.0.0.1:4175/api/v1/profile",
+    "status": 200,
+    "body": {
+      "data": {
+        "user": {
+          "_id": "6acb999961bbb2d61b6aad5a",
+          "fullName": "Local Verified Student",
+          "email": "local-profile-1791728024519@browser.test",
+          "phone": "+201234567890",
+          "role": "student",
+          "collegeId": "6acb991a61bbb2d61b6aaaa3",
+          "academicYearId": "6acb991a61bbb2d61b6aaaa5"
+        },
+        "college": {
+          "_id": "6acb991a61bbb2d61b6aaaa3",
+          "name": "Faculty of Computing"
+        },
+        "academicYear": {
+          "_id": "6acb991a61bbb2d61b6aaaa5",
+          "name": "Foundation Year",
+          "order": 0
+        },
+        "activeTerm": {
+          "_id": "6acb991a61bbb2d61b6aaaa7",
+          "name": "Autumn Term",
+          "order": 0,
+          "localOrder": 0
+        },
+        "device": {
+          "registeredAt": "2026-10-11T14:13:50.742Z"
+        }
+      }
+    }
+  },
+  "requests": [
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:4175/api/v1/auth/me"
+    },
+    {
+      "method": "GET",
+      "url": "http://127.0.0.1:4175/api/v1/profile"
+    }
+  ],
+  "visible": {
+    "fullName": true,
+    "email": true,
+    "phone": "+201234567890",
+    "academicDetails": "College\nFaculty of Computing\nAcademic year\nFoundation Year\nActive term\nAutumn Term\nRegistered device\nOct 11, 2026, 5:13 PM"
+  }
+}
