@@ -4,17 +4,19 @@ import { useAuth } from "../auth/context";
 import { useI18n } from "../../i18n/context";
 import { api } from "../../services/api";
 import { useResource } from "../../hooks/use-resource";
-import type { Academics, Academic, User } from "../../types/domain";
+import type { Academic, User } from "../../types/domain";
 import { academicYearLabel, academicTermLabel } from "../../i18n/academic-year";
 export function Profile() {
   const { account, refresh, logout } = useAuth(),
     { t, language } = useI18n(),
-    academics = useResource<Academics>("/public/academics"),
-    profile = useResource<{ user: User; activeTerm?: Academic; device?: { registeredAt: string } }>("/profile");
+    profile = useResource<{ user: User; college?: Academic; academicYear?: Academic; activeTerm?: Academic; device?: { registeredAt: string } }>("/profile");
   if (!account) return null;
-  if (!profile.data) return <Page title="profile"><State loading={profile.loading} error={profile.error} reload={profile.reload} /></Page>;
+  const error = profile.error === "NOT_FOUND" ? "PROFILE_ROUTE_MISSING"
+    : profile.error === "INVALID_ACADEMIC_CONTEXT" ? "PROFILE_ACADEMIC_CONTEXT_MISSING"
+    : profile.error === "INTERNAL_ERROR" ? "PROFILE_LOAD_FAILED" : profile.error;
+  if (!profile.data) return <Page title="profile"><State loading={profile.loading} error={error} reload={profile.reload} /></Page>;
   const user = profile.data.user;
-  const year = academics.data?.academic_years.find(c => c._id === user.academicYearId);
+  const year = profile.data.academicYear;
   return (
     <Page title="profile">
       <div className="profile-grid">
@@ -27,7 +29,7 @@ export function Profile() {
             </div>
           </div>
           <Form
-            initial={{ fullName: user.fullName, phone: user.phone }}
+            initial={{ fullName: user.fullName, phone: user.phone ?? "" }}
             fields={[{ key: "fullName" }, { key: "phone", type: "tel" }]}
             submit={(values) => api("/profile", "PATCH", values)}
             onDone={() => { profile.reload(); void refresh(); }}
@@ -36,8 +38,7 @@ export function Profile() {
             <dl>
               <dt>{t("collegeId")}</dt>
               <dd>
-                {academics.data?.colleges.find((c) => c._id === user.collegeId)
-                  ?.name || "—"}
+                {profile.data.college?.name || "—"}
               </dd>
               <dt>{t("academicYearId")}</dt>
               <dd>

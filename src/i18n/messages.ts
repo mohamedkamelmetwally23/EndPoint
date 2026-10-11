@@ -1,4 +1,8 @@
 export const en: Record<string, string> = {
+  PROFILE_ROUTE_MISSING: "The profile API route is unavailable. Check the backend version and API routing.",
+  PROFILE_USER_MISSING: "Your account could not be found. Sign in again.",
+  PROFILE_LOAD_FAILED: "Could not load your profile. Try again.",
+  PROFILE_ACADEMIC_CONTEXT_MISSING: "Your college or academic year is unavailable. Contact the administrator.",
   UPLOAD_ENDPOINT_UNAVAILABLE: "The upload endpoint is unavailable. Deploy the updated backend and check the API proxy.",
   FILE_TOO_LARGE: "File exceeds the size limit (PDF: 20 MB, image: 2 MB).",
   INVALID_FILE_TYPE: "Choose a valid PDF, PNG, JPEG or WebP file.",
@@ -268,6 +272,10 @@ export const en: Record<string, string> = {
   noPermission: "Your assignment allows viewing only.",
 };
 export const ar: Record<string, string> = {
+  PROFILE_ROUTE_MISSING: "مسار بيانات الملف الشخصي غير متاح. تحقق من نسخة الباك وتوجيه طلبات API.",
+  PROFILE_USER_MISSING: "تعذر العثور على حسابك. سجّل الدخول مرة أخرى.",
+  PROFILE_LOAD_FAILED: "تعذر تحميل الملف الشخصي. حاول مرة أخرى.",
+  PROFILE_ACADEMIC_CONTEXT_MISSING: "بيانات الكلية أو السنة الدراسية غير متاحة. تواصل مع مدير النظام.",
   UPLOAD_ENDPOINT_UNAVAILABLE: "مسار رفع الملفات غير متاح. انشر تحديث الباك وتأكد من توجيه طلبات API إليه.",
   FILE_TOO_LARGE: "الملف أكبر من الحد المسموح: 20 ميجابايت للـ PDF و2 ميجابايت للصورة.",
   INVALID_FILE_TYPE: "اختر ملف PDF أو صورة PNG أو JPEG أو WebP صالحة.",
