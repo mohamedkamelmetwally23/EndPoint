@@ -1,3 +1,4 @@
+import { Pagination } from "../../components/pagination";
 import { ActionLabel } from "../../components/action-label";
 import { useState } from "react";
 import { TrendingUp, Receipt, Wallet } from "lucide-react";
@@ -9,7 +10,7 @@ import { Page, State, Money, DateText, Action } from "../../components/ui";
 import { Form } from "../../components/form";
 import { useI18n } from "../../i18n/context";
 import type { Finance, Expense } from "../../types/domain";
-export function FinanceChart({ data }: { data: Finance }) {
+export function FinanceChart({ data }: { data: Pick<Finance, "monthlyRevenue" | "monthlyExpenses"> }) {
   const { t } = useI18n();
   const months = [
     ...new Set(
@@ -67,7 +68,8 @@ export function FinanceChart({ data }: { data: Finance }) {
   );
 }
 export function Accounts() {
-  const resource = useResource<Finance>("/staff/finance"),
+  const [page, setPage] = useState(1);
+  const resource = useResource<Finance>(`/staff/finance?page=${page}`),
     { t } = useI18n(),
     [editing, setEditing] = useState<Expense | null | undefined>();
   const [receipt, setReceipt] = useState<string>();
@@ -147,7 +149,8 @@ export function Accounts() {
                       ...values,
                       amount: Math.round(Number(values.amount) * 100),
                       date: new Date(String(values.date)).toISOString(),
-                      receiptImage: values.receiptImage || null,
+                      ...(editing && values.receiptImage === editing.receiptImage
+                        ? {} : { receiptImage: values.receiptImage || null }),
                     },
                   )
                 }
@@ -203,11 +206,7 @@ export function Accounts() {
                             aria-label={t("viewReceipt")}
                             onClick={() => setReceipt(e.receiptImage)}
                           >
-                            <img
-                              src={fileUrl(e.receiptImage)}
-                              alt={t("receiptImage")}
-                              loading="lazy"
-                            />
+                            <Receipt size={24} aria-hidden="true" />
                           </button>
                         )}
                         {e.receiptUrl && (
@@ -271,6 +270,7 @@ export function Accounts() {
           />
         </Dialog>
       )}
+      <Pagination page={page} setPage={setPage} loading={resource.loading} pagination={resource.data?.pagination} />
     </Page>
   );
 }

@@ -1,17 +1,19 @@
-import { Page, DateText } from "../../components/ui";
+import { Page, DateText, State } from "../../components/ui";
 import { Form } from "../../components/form";
 import { useAuth } from "../auth/context";
 import { useI18n } from "../../i18n/context";
 import { api } from "../../services/api";
 import { useResource } from "../../hooks/use-resource";
-import type { Academics } from "../../types/domain";
+import type { Academics, Academic, User } from "../../types/domain";
 import { academicYearLabel, academicTermLabel } from "../../i18n/academic-year";
 export function Profile() {
   const { account, refresh, logout } = useAuth(),
     { t, language } = useI18n(),
-    academics = useResource<Academics>("/public/academics");
+    academics = useResource<Academics>("/public/academics"),
+    profile = useResource<{ user: User; activeTerm?: Academic; device?: { registeredAt: string } }>("/profile");
   if (!account) return null;
-  const user = account.user;
+  if (!profile.data) return <Page title="profile"><State loading={profile.loading} error={profile.error} reload={profile.reload} /></Page>;
+  const user = profile.data.user;
   const year = academics.data?.academic_years.find(c => c._id === user.academicYearId);
   return (
     <Page title="profile">
@@ -28,7 +30,7 @@ export function Profile() {
             initial={{ fullName: user.fullName, phone: user.phone }}
             fields={[{ key: "fullName" }, { key: "phone", type: "tel" }]}
             submit={(values) => api("/profile", "PATCH", values)}
-            onDone={() => void refresh()}
+            onDone={() => { profile.reload(); void refresh(); }}
           />
           {user.role === "student" && (
             <dl>
@@ -42,11 +44,11 @@ export function Profile() {
                 {year ? academicYearLabel(year.name, language) : "—"}
               </dd>
               <dt>{t("activeTerm")}</dt>
-              <dd>{account.activeTerm ? academicTermLabel(account.activeTerm, year, language) : t("noActiveTerm")}</dd>
+              <dd>{profile.data.activeTerm ? academicTermLabel(profile.data.activeTerm, year, language) : t("noActiveTerm")}</dd>
               <dt>{t("device")}</dt>
               <dd>
-                {account.device ? (
-                  <DateText value={account.device.registeredAt} />
+                {profile.data.device ? (
+                  <DateText value={profile.data.device.registeredAt} />
                 ) : (
                   t("noDevice")
                 )}

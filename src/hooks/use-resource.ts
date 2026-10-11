@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from "react";
 import { api } from "../services/api";
-export function useResource<T>(path: string) {
+export function useResource<T>(path: string, enabled = true) {
   const [data, setData] = useState<T>(),
     [error, setError] = useState(""),
     [loading, setLoading] = useState(true),
     [revision, setRevision] = useState(0);
   useEffect(() => {
+    if (!enabled) { setLoading(false); return; }
     let active = true;
     setLoading(true);
     setError("");
@@ -22,7 +23,7 @@ export function useResource<T>(path: string) {
     return () => {
       active = false;
     };
-  }, [path, revision]);
+  }, [path, revision, enabled]);
   return {
     data,
     error,

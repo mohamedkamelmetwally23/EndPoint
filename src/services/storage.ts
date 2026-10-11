@@ -1,4 +1,3 @@
-import { uploadPresigned } from "@vercel/blob/client";
 import { api, ApiError, API_BASE_URL } from "./api";
 export type UploadContext = { purpose: "summary" | "material" | "receipt" | "cover"; scopeId?: string; editing?: boolean };
 export async function uploadFile(file: File, context: UploadContext) {
@@ -9,7 +8,9 @@ export async function uploadFile(file: File, context: UploadContext) {
       throw new Error("UPLOAD_ENDPOINT_UNAVAILABLE");
     throw error;
   });
-  try { await uploadPresigned(prepared.pathname, file, { access: prepared.access,
+  try {
+    const { uploadPresigned } = await import("@vercel/blob/client");
+    await uploadPresigned(prepared.pathname, file, { access: prepared.access,
     handleUploadUrl: `${API_BASE_URL}/files/${prepared.id}/upload`,
     contentType: file.type || "application/pdf" }); }
   catch { throw new Error("FILE_UPLOAD_FAILED"); }

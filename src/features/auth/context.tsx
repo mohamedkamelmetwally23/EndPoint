@@ -3,43 +3,49 @@ import {
   useContext,
   useEffect,
   useState,
+  useRef,
+  useCallback,
   type ReactNode,
 } from "react";
 import { api } from "../../services/api";
-import type { User, Academic } from "../../types/domain";
+import type { User } from "../../types/domain";
 export type Account = {
-  user: User;
-  activeTerm?: Academic;
-  device?: { registeredAt: string };
+  user: Pick<User, "_id" | "fullName" | "role">;
 };
 const Context = createContext<{
   account?: Account;
   loading: boolean;
   refresh: () => Promise<void>;
+  acceptLogin: (account: Account) => void;
   logout: () => Promise<void>;
-}>({ loading: true, refresh: async () => {}, logout: async () => {} });
+}>({ loading: true, refresh: async () => {}, acceptLogin: () => {}, logout: async () => {} });
 export function Auth({ children }: { children: ReactNode }) {
   const [account, setAccount] = useState<Account>(),
     [loading, setLoading] = useState(true);
-  const refresh = async () => {
+  const generation = useRef(0);
+  const refresh = useCallback(async () => {
+    const current = ++generation.current;
     try {
-      setAccount(await api<Account>("/auth/me"));
+      const value = await api<Account>("/auth/me");
+      if (current === generation.current) setAccount(value);
     } catch {
-      setAccount(undefined);
+      if (current === generation.current) setAccount(undefined);
     } finally {
-      setLoading(false);
+      if (current === generation.current) setLoading(false);
     }
-  };
+  }, []);
   useEffect(() => {
     void refresh();
-  }, []);
+  }, [refresh]);
   return (
     <Context.Provider
       value={{
         account,
         loading,
         refresh,
+        acceptLogin: (value) => { generation.current++; setAccount(value); setLoading(false); },
         logout: async () => {
+          generation.current++;
           await api("/auth/logout", "POST");
           setAccount(undefined);
         },

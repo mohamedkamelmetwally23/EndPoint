@@ -5,7 +5,7 @@ import { Link, Navigate, useNavigate } from "react-router-dom";
 import { Form, type Values } from "../../components/form";
 import { PreferencesControls, State } from "../../components/ui";
 import { useI18n } from "../../i18n/context";
-import { useAuth } from "./context";
+import { type Account, useAuth } from "./context";
 import { api } from "../../services/api";
 import { useResource } from "../../hooks/use-resource";
 import type { Academics } from "../../types/domain";
@@ -15,9 +15,9 @@ import { PasswordInput } from "../../components/password-input";
 import { StudyArt } from "./study-art";
 export function AuthPage({ register = false }: { register?: boolean }) {
   const { t, language } = useI18n(),
-    { account, refresh } = useAuth(),
+    { account, acceptLogin } = useAuth(),
     navigate = useNavigate(),
-    academic = useResource<Academics>("/public/academics");
+    academic = useResource<Academics>("/public/academics", register);
   const [college, setCollege] = useState(""),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false);
@@ -25,15 +25,13 @@ export function AuthPage({ register = false }: { register?: boolean }) {
   const submit = async (values: Values) => {
     if (register) {
       await api("/auth/register", "POST", values);
-      await api("/auth/login", "POST", {
+      acceptLogin(await api<Account>("/auth/login", "POST", {
         email: values.email,
         password: values.password,
-      });
-      await refresh();
+      }));
       navigate("/", { replace: true });
     } else {
-      await api("/auth/login", "POST", values);
-      await refresh();
+      acceptLogin(await api<Account>("/auth/login", "POST", values));
       navigate("/");
     }
   };

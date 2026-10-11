@@ -107,6 +107,7 @@ export type Expense = {
 };
 export type Breakdown = { _id: string; amount: number; name?: string };
 export type Finance = {
+  pagination?: import("../services/api").Pagination;
   expenses: Expense[];
   expenseTotal: number;
   revenue?: number;
@@ -141,4 +142,8 @@ export type StudentReport = {
   total: number;
   lastActivity?: string;
   lectures: { _id: string; title: string; completed: boolean }[];
+};
+
+export type TimelineEvent = Pick<Lecture, "_id" | "packageSubjectId" | "title" | "publishedAt"> & {
+  context?: { subjectId: { name: string }; packageId: { name: string } };
 };

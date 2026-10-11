@@ -1,24 +1,27 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Preferences } from "../i18n/context";
 import { Auth, useAuth } from "../features/auth/context";
-import { AuthPage } from "../features/auth/page";
 import { Workspace } from "../layouts/workspace";
-import { Timeline } from "../features/student/timeline";
-import { StudentPackages, StudentPackage } from "../features/student/packages";
-import { StudentLecture } from "../features/student/lecture";
-import { StudentSubject } from "../features/student/subject";
-import { Profile } from "../features/student/profile";
-import { AcademicStructure } from "../features/super-admin/academics";
-import { People } from "../features/super-admin/people";
-import { Orders } from "../features/super-admin/orders";
-import { AuditLogs } from "../features/super-admin/audit";
-import { Dashboard } from "../features/shared/dashboard";
-import { StaffPackages } from "../features/shared/packages";
-import { ContentPackage, ContentLecture } from "../features/shared/content";
-import { Accounts } from "../features/shared/finance";
-import { LecturerStudents } from "../features/lecturer/students";
 import type { Role } from "../types/domain";
 import type { ReactNode } from "react";
+const AuthPage = lazy(() => import("../features/auth/page").then(module => ({ default: module.AuthPage })));
+const Timeline = lazy(() => import("../features/student/timeline").then(module => ({ default: module.Timeline })));
+const StudentPackages = lazy(() => import("../features/student/packages").then(module => ({ default: module.StudentPackages })));
+const StudentPackage = lazy(() => import("../features/student/packages").then(module => ({ default: module.StudentPackage })));
+const StudentLecture = lazy(() => import("../features/student/lecture").then(module => ({ default: module.StudentLecture })));
+const StudentSubject = lazy(() => import("../features/student/subject").then(module => ({ default: module.StudentSubject })));
+const Profile = lazy(() => import("../features/student/profile").then(module => ({ default: module.Profile })));
+const AcademicStructure = lazy(() => import("../features/super-admin/academics").then(module => ({ default: module.AcademicStructure })));
+const People = lazy(() => import("../features/super-admin/people").then(module => ({ default: module.People })));
+const Orders = lazy(() => import("../features/super-admin/orders").then(module => ({ default: module.Orders })));
+const AuditLogs = lazy(() => import("../features/super-admin/audit").then(module => ({ default: module.AuditLogs })));
+const Dashboard = lazy(() => import("../features/shared/dashboard").then(module => ({ default: module.Dashboard })));
+const StaffPackages = lazy(() => import("../features/shared/packages").then(module => ({ default: module.StaffPackages })));
+const ContentPackage = lazy(() => import("../features/shared/content").then(module => ({ default: module.ContentPackage })));
+const ContentLecture = lazy(() => import("../features/shared/content").then(module => ({ default: module.ContentLecture })));
+const Accounts = lazy(() => import("../features/shared/finance").then(module => ({ default: module.Accounts })));
+const LecturerStudents = lazy(() => import("../features/lecturer/students").then(module => ({ default: module.LecturerStudents })));
 function Landing() {
   const { account } = useAuth();
   return (
@@ -48,7 +51,7 @@ export function App() {
     <Preferences>
       <Auth>
         <BrowserRouter>
-          <Routes>
+          <Suspense fallback={<div role="status" aria-label="Loading" />}><Routes>
             <Route path="/login" element={<AuthPage />} />
             <Route path="/register" element={<AuthPage register />} />
             <Route element={<Workspace />}>
@@ -200,7 +203,7 @@ export function App() {
               />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
-          </Routes>
+          </Routes></Suspense>
         </BrowserRouter>
       </Auth>
     </Preferences>

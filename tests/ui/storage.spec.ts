@@ -92,7 +92,11 @@ test("staff expense receipts are saved as base64 and visible to the super admin"
   for (const email of ["manager@browser.test", "lecturer@browser.test"]) {
     const row = page.getByRole("row").filter({ hasText: email });
     await row.getByRole("button", { name: "View receipt image" }).click();
-    await expect(page.getByRole("dialog").getByRole("img")).toHaveAttribute("src", `data:image/png;base64,${png.toString("base64")}`);
+    const image = page.getByRole("dialog").getByRole("img");
+    await expect(image).toHaveAttribute("src", /^\/api\/v1\/staff\/expenses\/[a-f\d]{24}\/receipt$/);
+    const response = await page.request.get((await image.getAttribute("src"))!);
+    expect(response.ok()).toBeTruthy();
+    expect(await response.body()).toEqual(png);
     await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
   }
 });

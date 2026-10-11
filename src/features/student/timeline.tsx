@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useResource } from "../../hooks/use-resource";
 import { useI18n } from "../../i18n/context";
 import { Page, State } from "../../components/ui";
-import type { Lecture } from "../../types/domain";
+import type { TimelineEvent } from "../../types/domain";
 export function Timeline() {
   const { t, language } = useI18n(),
     [cursor, setCursor] = useState(new Date()),
@@ -19,7 +19,7 @@ export function Timeline() {
   }
   const end = new Date(start);
   end.setDate(start.getDate() + (view === "month" ? 42 : 7));
-  const resource = useResource<Lecture[]>(
+  const resource = useResource<TimelineEvent[]>(
     `/student/timeline?from=${start.toISOString()}&to=${end.toISOString()}`,
   );
   const move = (amount: number) => {

@@ -1,6 +1,11 @@
 import { test, expect, type Page } from "@playwright/test";
 const root = "http://127.0.0.1:4001/api/v1";
 const password = "Browser-test-password!";
+// The test server trusts documentation-range IPs so independent browser clients
+// do not exhaust one shared login rate-limit bucket.
+test.beforeEach(async ({ context }, info) => {
+  await context.setExtraHTTPHeaders({ "x-forwarded-for": `203.0.113.${info.line % 254 + 1}` });
+});
 async function login(page: Page, email: string) {
   await page.goto("/login");
   await page.getByLabel("Email", { exact: true }).fill(email);
@@ -33,6 +38,7 @@ async function claim(page: Page) {
     .getByRole("link")
     .filter({ has: page.getByRole("heading", { name: "Open Learning" }) })
     .click();
+  await expect(page.getByRole("heading", { name: "Open Learning", level: 1, exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Get for Free", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Algorithms", exact: true }),
@@ -122,7 +128,7 @@ test("paid CTA opens InstaPay dialog and submits a pending request after confirm
   expect(requests).toBe(1);
   await expect(page).toHaveURL(/preview=true/);
   const packageUrl = page.url();
-  const account = await (await page.request.get(`${root}/auth/me`)).json();
+  const account = await (await page.request.get(`${root}/profile`)).json();
   await page.reload();
   await expect(page.getByRole("button", { name: "Buy", exact: true })).toBeDisabled();
   await expect(page.getByRole("status")).toContainText("awaiting approval");
@@ -134,13 +140,16 @@ test("paid CTA opens InstaPay dialog and submits a pending request after confirm
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
   await login(page, "admin@browser.test");
   await page.goto("/orders");
-  const image = page.locator(".order-receipt-thumbnail").first();
-  await expect(image).toBeVisible();
-  const url = await image.getAttribute("src");
-  expect(url).toMatch(/^data:image\/png;base64,/);
+  const list = await (await page.request.get(`${root}/admin/orders`)).json();
+  expect(JSON.stringify(list)).not.toContain("data:image/");
+  const url = list.data.find((row: { _id: string }) => row._id === existing.data.order._id).receiptImage;
+  expect(url).toMatch(/^\/api\/v1\/admin\/orders\/[a-f\d]{24}\/receipt$/);
   expect(uploads).toBe(0);
-  await image.click();
-  await expect(page.getByRole("dialog").getByRole("img")).toHaveAttribute("src", url!);
+  await page.getByRole("button", { name: "View receipt image", exact: true }).first().click();
+  await expect(page.getByRole("dialog").getByRole("img")).toHaveAttribute("src", url);
+  const receiptResponse = await page.request.get(`http://127.0.0.1:4001${url}`);
+  expect(receiptResponse.ok()).toBeTruthy();
+  const receiptBytes = await receiptResponse.body();
   await page.getByRole("dialog").getByRole("button", { name: "Close", exact: true }).click();
   await page.request.post(`${root}/admin/orders/${existing.data.order._id}/cancel`);
   await page.getByRole("button", { name: "Sign out", exact: true }).click();
@@ -152,7 +161,7 @@ test("paid CTA opens InstaPay dialog and submits a pending request after confirm
   await expect(page.getByRole("dialog")).toBeVisible();
   await page.getByRole("dialog").locator('input[type="file"]').setInputFiles({
     name: "receipt.png", mimeType: "image/png",
-    buffer: Buffer.from(url!.split(",")[1], "base64"),
+    buffer: receiptBytes,
   });
   await page.getByRole("dialog").getByRole("button", { name: "Confirm transfer" }).click();
   await expect(page.getByRole("status")).toContainText("awaiting approval");
@@ -246,7 +255,7 @@ test("super admin can create academic structure and inspect orders, finance and 
   await page.goto("/academics");
   await page.getByRole("button", { name: /Create.*Colleges/ }).click();
   await page.getByLabel("Name", { exact: true }).fill("Engineering");
-  await page.getByLabel("Number of college years", { exact: true }).fill("4");
+  await page.getByLabel("Number of years", { exact: true }).fill("4");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(
     page.locator(".record-list").getByText("Engineering", { exact: true }),
@@ -275,7 +284,7 @@ test("super admin completes a real paid order and grants its package", async ({
   page,
 }) => {
   await student(page);
-  const account = await (await page.request.get(`${root}/auth/me`)).json();
+  const account = await (await page.request.get(`${root}/profile`)).json();
   const packages = await (
     await page.request.get(`${root}/student/packages?mode=explore`)
   ).json();
@@ -322,11 +331,11 @@ test("super admin creates a package and grants content-manager publication permi
     .getByLabel("College", { exact: true })
     .selectOption({ label: "Faculty of Computing" });
   await page
-    .getByLabel("Academic year", { exact: true })
-    .selectOption({ label: "Foundation Year" });
+    .getByLabel("Year", { exact: true })
+    .selectOption({ label: "Year 1" });
   await page
-    .getByLabel("Term", { exact: true })
-    .selectOption({ label: "Autumn Term" });
+    .getByLabel("Semester", { exact: true })
+    .selectOption({ label: "Semester 1" });
   await page.getByLabel("Free package", { exact: true }).check();
   await page.getByLabel("Algorithms", { exact: true }).check();
   await page.getByLabel("Status", { exact: true }).selectOption("active");
@@ -476,4 +485,17 @@ test("staff creation validates password length, shows server field errors and sa
   await expect(
     page.locator(".record-list").getByText(email, { exact: true }),
   ).toBeVisible();
+});
+
+test("login reuses its account response and avoids registration-only requests", async ({ page }) => {
+  const reads: string[] = [];
+  page.on("request", request => {
+    if (request.method() === "GET" && /\/(auth\/me|public\/academics)(?:\?|$)/.test(request.url())) reads.push(request.url());
+  });
+  await login(page, "admin@browser.test");
+  await expect(page.getByRole("heading", { name: "Dashboard", exact: true })).toBeVisible();
+  expect(reads.filter(url => url.includes("/auth/me"))).toHaveLength(1);
+  expect(reads.filter(url => url.includes("/public/academics"))).toHaveLength(0);
+  await page.goto("/people");
+  await expect(page.getByRole("button", { name: "Previous", exact: true })).toBeDisabled();
 });

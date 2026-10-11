@@ -9,10 +9,11 @@ export class ApiError extends Error {
     super(code);
   }
 }
-export async function api<T>(
+async function request<T>(
   path: string,
   method = "GET",
   body?: unknown,
+  envelope = false,
 ): Promise<T> {
   const response = await fetch(
     `${API_BASE_URL}${path}`,
@@ -35,5 +36,30 @@ export async function api<T>(
       response.status,
       (result.error?.fields || []).map((field: { path: string }) => field.path),
     );
-  return result.data as T;
+  return (envelope ? result : result.data) as T;
+}
+
+// Share only in-flight reads; settled responses are never cached.
+const pendingReads = new Map<string, Promise<unknown>>();
+function read<T>(path: string, envelope = false): Promise<T> {
+  const key = `${envelope ? "page:" : "data:"}${path}`;
+  const existing = pendingReads.get(key);
+  if (existing) return existing as Promise<T>;
+  const pending = request<T>(path, "GET", undefined, envelope).finally(() => {
+    if (pendingReads.get(key) === pending) pendingReads.delete(key);
+  });
+  pendingReads.set(key, pending);
+  return pending;
+}
+export function api<T>(path: string, method = "GET", body?: unknown): Promise<T> {
+  if (method !== "GET" || body !== undefined) {
+    pendingReads.clear();
+    return request<T>(path, method, body);
+  }
+  return read<T>(path);
+}
+
+export type Pagination = { page: number; limit: number; total: number; hasNext: boolean };
+export function apiPage<T>(path: string) {
+  return read<{ data: T[]; pagination: Pagination }>(path, true);
 }

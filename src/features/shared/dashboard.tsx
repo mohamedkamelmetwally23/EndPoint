@@ -10,7 +10,7 @@ export function Dashboard() {
     resource = useResource<{
       stats: Record<string, number>;
       activity: Audit[];
-      accounts?: Finance;
+      accounts?: Pick<Finance, "monthlyRevenue" | "monthlyExpenses">;
     }>("/staff/dashboard"),
     { t } = useI18n();
   return (

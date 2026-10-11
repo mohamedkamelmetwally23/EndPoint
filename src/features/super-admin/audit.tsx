@@ -1,3 +1,5 @@
+import { Pagination } from "../../components/pagination";
+import { usePagedResource } from "../../hooks/use-paged-resource";
 import { useResource } from "../../hooks/use-resource";
 import { Page, State, DateText } from "../../components/ui";
 import { useI18n } from "../../i18n/context";
@@ -19,7 +21,7 @@ function FrequentLogins() {
 }
 export function AuditLogs() {
   const [tab, setTab] = useState("all");
-  const resource = useResource<Audit[]>(tab === "devices" ? "/admin/audit/other-devices" : "/admin/audit"),
+  const resource = usePagedResource<Audit>(tab === "devices" ? "/admin/audit/other-devices" : "/admin/audit", tab !== "frequent"),
     { t } = useI18n();
   return (
     <Page title="audit">
@@ -65,6 +67,7 @@ export function AuditLogs() {
         </div>
       </section>
       </>}
+      <Pagination {...resource} />
     </Page>
   );
 }

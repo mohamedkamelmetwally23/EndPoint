@@ -1,10 +1,11 @@
-import { useResource } from "../../hooks/use-resource";
+import { usePagedResource } from "../../hooks/use-paged-resource";
+import { Pagination } from "../../components/pagination";
 import { UserRound } from "lucide-react";
 import { Page, State, Progress, DateText, Badge } from "../../components/ui";
 import { useI18n } from "../../i18n/context";
 import type { StudentReport } from "../../types/domain";
 export function LecturerStudents() {
-  const resource = useResource<StudentReport[]>("/staff/students"),
+  const resource = usePagedResource<StudentReport>("/staff/students"),
     { t } = useI18n();
   return (
     <Page title="students">
@@ -43,6 +44,7 @@ export function LecturerStudents() {
           </tbody>
         </table>
       </section>}
+      <Pagination {...resource} />
     </Page>
   );
 }

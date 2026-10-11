@@ -26,7 +26,7 @@ export function Assignments({ user }: { user: User }) {
     [packageId, setPackageId] = useState(""),
     [editing, setEditing] = useState<Assignment>();
   const content = useResource<PackageDetail>(
-    `/staff/packages/${packageId || "000000000000000000000000"}`,
+    `/staff/packages/${packageId}`, Boolean(packageId),
   );
   const submit = async (values: Values) => {
     const subjectIds = Array.isArray(values.packageSubjectIds)

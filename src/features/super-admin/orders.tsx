@@ -1,5 +1,6 @@
+import { Pagination } from "../../components/pagination";
+import { usePagedResource } from "../../hooks/use-paged-resource";
 import { useState } from "react";
-import { useResource } from "../../hooks/use-resource";
 import {
   Page,
   State,
@@ -16,7 +17,7 @@ export function Orders() {
   const [status, setStatus] = useState("pending"),
     [receipt, setReceipt] = useState<string | null>(null),
     { t } = useI18n(),
-    resource = useResource<Order[]>(`/admin/orders?status=${status}`);
+    resource = usePagedResource<Order>(`/admin/orders?status=${status}`);
   return (
     <Page title="orders">
       {receipt && (
@@ -71,7 +72,6 @@ export function Orders() {
                   <td data-label={t("receiptImage")}>
                     {order.receiptImage ? (
                       <button type="button" className="quiet" onClick={() => setReceipt(order.receiptImage!)}>
-                        <img className="order-receipt-thumbnail" src={fileUrl(order.receiptImage)} alt={t("receiptImage")} />
                         {t("viewReceipt")}
                       </button>
                     ) : "—"}
@@ -115,6 +115,7 @@ export function Orders() {
           </table>
         </div>
       </section>
+      <Pagination {...resource} />
     </Page>
   );
 }

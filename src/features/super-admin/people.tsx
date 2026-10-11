@@ -1,3 +1,5 @@
+import { Pagination } from "../../components/pagination";
+import { usePagedResource } from "../../hooks/use-paged-resource";
 import { ActionLabel } from "../../components/action-label";
 import { useState } from "react";
 import { Dialog } from "../../components/dialog";
@@ -69,7 +71,7 @@ export function People() {
   const [role, setRole] = useState("student"),
     [selected, setSelected] = useState<User>(),
     [create, setCreate] = useState(false),
-    resource = useResource<User[]>(`/admin/users?role=${role}`),
+    resource = usePagedResource<User>(`/admin/users?role=${role}`),
     academics = useAdminAcademics(),
     { t } = useI18n();
   const initial: Values = selected
@@ -253,6 +255,7 @@ export function People() {
           </Dialog>
         )}
       </div>
+      <Pagination {...resource} />
     </Page>
   );
 }
